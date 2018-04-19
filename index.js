@@ -1,4 +1,11 @@
-/**
- * Created by kor on 2017/6/9.
- */
-var a = 1
+var mv = {status: 0};
+var value = mv.status;
+Object.defineProperty(mv, 'status', {
+    set: function (valNew) {
+        value = valNew;
+        console.log(value+'is done')
+    },
+    get: function () {
+        return value;
+    }
+});
