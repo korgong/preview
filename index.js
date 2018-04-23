@@ -1,11 +1,11 @@
-var mv = {status: 0};
-var value = mv.status;
-Object.defineProperty(mv, 'status', {
-    set: function (valNew) {
-        value = valNew;
-        console.log(value+'is done')
-    },
-    get: function () {
-        return value;
-    }
-});
+function getPromise() {
+    return new Promise(function (resolve,reject) {
+        resolve([1])
+    })
+}
+getPromise().then(function (value) {
+    value.push(2)
+    return value
+}).then(function (value) {
+    console.log(value,'console')
+})
