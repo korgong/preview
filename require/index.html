@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <!--async属性表明这个文件需要异步加载，避免网页失去响应。IE不需要defer关键字-->
+    <!--data-main属性的作用是，指定网页程序的主模块.main.js会第一个被require.js加载-->
+    <script src="js/require.js" data-main="js/main" defer async="true"></script>
+</head>
+
+<body>
+    <div>require.js</div>
+    <div class="slot"></div>
+</body>
+</html>
