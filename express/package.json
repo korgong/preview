@@ -1,0 +1,12 @@
+{
+  "name": "yog",
+  "version": "0.2.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "develop": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.14.1"
+  }
+}
