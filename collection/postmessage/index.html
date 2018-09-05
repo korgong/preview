@@ -1,0 +1,32 @@
+<!--来源 https://www.cnblogs.com/stephenykk/p/7193845.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>preview</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+</head>
+<body>
+<h1 class="header">page A</h1>
+<div class="mb20">
+    <textarea name="ta" id="data" cols="30" rows="5">hello world</textarea>
+    <button style="font-size:20px;" onclick="send()">post message</button>
+</div>
+<!-- 不跨域的情况 -->
+<iframe src="index2.html" id="child" style="display: block; border: 1px dashed #ccc; height: 300px;"></iframe>
+
+<script>
+    function send() {
+        var data = document.querySelector('#data').value;
+
+        window.frames[0].postMessage(data, '/'); // 触发同域子页面的message事件
+    }
+
+    window.addEventListener('message', function(messageEvent) {
+        var data = messageEvent.data;// messageEvent: {source, currentTarget, data}
+        console.info('message from child:', data);
+    }, false);
+</script>
+</body>
+</html>
