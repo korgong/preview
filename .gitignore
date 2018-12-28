@@ -3,6 +3,7 @@ npm-debug.log
 .classpath
 .externalToolBuilders/
 bin/
-node_modules/
+**/node_modules/**
 /express/node_modules
 .DS_Store
+**/images/**
