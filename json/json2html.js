@@ -89,30 +89,55 @@ var json = [
  * @param parent
  * @returns dom
  */
-function parseDom(json, parent) {
-    // 遍历传入的json数组
-    for (var attr in json) {
-        var tagName = json[attr].tag;
-        var rootDom = document.createElement(tagName);
-        delete json[attr].tag;
-        var rootElement = json[attr];
+function getNodes(parent, children) {
+    // 将子节点加入父容器，子节点的容器和子节点的子节点传入递归
+    for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+        let node = document.createElement(child.tag);
+        delete child.tag;
         // 遍历根对象的属性
-        for (var rootAttr in rootElement) {
-            if (rootAttr === 'html') {
-                var text = document.createTextNode(rootElement[rootAttr]);
-                rootDom.appendChild(text);
-            } else if (rootAttr === '_child') {
-                parseDom(rootElement[rootAttr], rootDom);
+        for (let attr in child) {
+            if (attr === 'html') {
+                let textNode = document.createTextNode(child[attr]);
+                node.appendChild(textNode);
+                parent.appendChild(node);
+            } else if (attr === '_child') {
+                parent.appendChild(getNodes(node, child[attr]));
             } else {
-                rootDom.setAttribute(rootAttr, rootElement[rootAttr]);
+                node.setAttribute(attr, child[attr]);
             }
         }
-        parent.appendChild(rootDom);
     }
-
-    // 返回结果
     return parent;
 }
 
-var dom = parseDom(json, document.createElement('div'));
-document.write(dom.outerHTML);
+let nodes = getNodes(document.createElement('div'), json);
+$('.app').append(nodes);
+
+// function parseDom(json, parent) {
+//     // 遍历传入的json数组
+//     for (var attr in json) {
+//         var tagName = json[attr].tag;
+//         var rootDom = document.createElement(tagName);
+//         delete json[attr].tag;
+//         var rootElement = json[attr];
+//         // 遍历根对象的属性
+//         for (var rootAttr in rootElement) {
+//             if (rootAttr === 'html') {
+//                 var text = document.createTextNode(rootElement[rootAttr]);
+//                 rootDom.appendChild(text);
+//             } else if (rootAttr === '_child') {
+//                 parseDom(rootElement[rootAttr], rootDom);
+//             } else {
+//                 rootDom.setAttribute(rootAttr, rootElement[rootAttr]);
+//             }
+//         }
+//         parent.appendChild(rootDom);
+//     }
+//
+//     // 返回结果
+//     return parent;
+// }
+//
+// var dom = parseDom(json, document.createElement('div'));
+// document.write(dom.outerHTML);
