@@ -1,34 +1,29 @@
-var des = {
-    name: 'A',
-    child: [
-        {
-            name: 'B', child: [
-                {name: 'C', child: []},
-                {name: 'D', child: []},
-            ]
-        },
-        {name: 'E', child: []}
-    ]
-};
-var json2html = function (json) {
-    var node = document.createElement('div');
-    node.id = json.name;
-    if (json.child.length === 0) {
-        return node;
+obj = [{
+    a: {
+        b: 3
+    },
+    c: [1, 2, 3]
+}, 2];
+
+function deepCopy(obj) {
+    let parentObj = Object.prototype.toString.call(obj) === '[object Object]' ? {} : [];
+    // 添加子元素。子元素判断，如果是数组或者对象就递归
+    for (let attr in obj) {
+        let child = obj[attr];
+        let type = Object.prototype.toString.call(child);
+        if (type === '[object Object]') {
+            parentObj[attr] = deepCopy(obj[attr]);
+        } else if (type === '[object Array]') {
+            parentObj[attr] = deepCopy(obj[attr]);
+        } else {
+            // number boolean string...
+            parentObj[attr] = obj[attr];
+        }
     }
-    for (var i = 0; i < json.child.length; i++) {
-        var childNode = json2html(json.child[i]);
-        node.appendChild(childNode);
-    }
-    return node;
-};
-var nodeRes = json2html(des);
-// var frontErgodic = function (json) {
-//     console.log(json.name);
-//     if (json.child.length > 0) {
-//         for (var i = json.child.length -1; i > -1; i--) {
-//             frontErgodic(json.child[i]);
-//         }
-//     }
-// };
-// frontErgodic(des);
+    return parentObj;
+}
+
+
+let newObj = deepCopy(obj);
+
+console.log(newObj);
