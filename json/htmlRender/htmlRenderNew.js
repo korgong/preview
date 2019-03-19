@@ -1,47 +1,55 @@
 function Render (opts) {
-    // virtualDom
-    // var virtualDom = {
-    //     id: 'root',
-    //     children: []
-    // };
     this.VNode = _proto.createVirtualDom(opts.htmlString);
-    // this.overflowVNode = null;
 }
 
 var _proto = {
     render: function (size) {
+        var me = this;
+
         if (!this.VNode) {
             return '';
         }
 
-        var stageName = 'renderStage_' + Math.random().toString(36).substr(2);
-        $('.render-stage').remove();
-        $('body').append('<div id="'+ stageName +'" class="render-stage"><div class="box-inner"></div></div>');
-        this.box = $('#'+stageName).css({
+        var renderStage = document.getElementById('render-stage');
+
+        renderStage && renderStage.parentNode.removeChild(renderStage);
+        var renderStage = document.createElement('div');
+
+        renderStage.id = 'render-stage';
+        renderStage.innerHTML = '<div class="box-inner"></div>';
+        Utils.css(renderStage, {
             width: size.width + 'px',
             height: size.height + 'px',
             position: 'absolute',
             overflow: 'hidden',
-            left: -10000 + 'px',
-            top: 0,
-            'z-index': 10,
-            'box-shadow': '0 0 15px 0 rgba(0, 0, 0, .2)',
-            'background': '#fff'
+            left: 100 + 'px',
+            top: 0
         });
-        this.content = this.box.find('.box-inner');
+        document.body.appendChild(renderStage);
+        this.box = renderStage;
+        this.content = Utils.GetByClass(renderStage, 'box-inner')[0];
         this.overflowVNode = JSON.parse(JSON.stringify(this.VNode));
+        this.size = size;
         this.params = {
             stop: false
         };
-        this.virtualDomRender(this.content.get(0), this.VNode.children, this.params);
+        this.virtualDomRender(this.content, this.VNode.children, this.params);
         if (!this.params.stop) {
             this.overflowVNode = null;
         }
-        var rendedHtml = this.content.html();
-        this.box.remove();
+        var rendedHtml = this.content.innerHTML;
+        this.box.parentNode.removeChild(this.box);
         this.VNode = this.overflowVNode;
-
         return rendedHtml;
+    },
+    end: function (params) {
+        // 回手掏，从此vnode向上找，把之前的分叉树全干掉
+        if (params.vNode.nodeType == 3) {
+            var VNode = this.findVNode(params.vNode.id, this.overflowVNode);
+
+            VNode.nodeValue = params.vNode.nodeValue;
+        }
+        this.clearPrev(params.vNode, this.overflowVNode);
     },
     createVirtualDom: function (htmlString) {
         var virtualDom = {
@@ -49,21 +57,27 @@ var _proto = {
             children: []
         };
 
-        $('#fragment').remove();
-        $('body').append('<div id="fragment" style="display: none;">'+ htmlString +'</div>');
-
-        this.create(virtualDom.children, $('#fragment').get(0), 'root');
-        $('#fragment').remove();
+        var fragment = document.getElementById('fragment');
+        fragment && fragment.parentNode.removeChild(fragment);
+        fragment = document.createElement('div');
+        fragment.id = 'fragment';
+        Utils.css({
+            'display': 'none'
+        });
+        fragment.innerHTML = htmlString;
+        document.body.appendChild(fragment);
+        this.readDomTree(virtualDom.children, fragment, 'root');
+        fragment.parentNode.removeChild(fragment);
         return virtualDom;
     },
-    create: function (virtualDom, parentNode, virtualDomId) {
+    readDomTree: function (virtualDom, parentNode, virtualDomId) {
         var me = this;
         var childNodes = parentNode.childNodes;
         if (!childNodes.length) return;
 
         [].slice.call(childNodes).forEach(function (child) {
             var node = {
-                id: 'vNode_' + Math.random().toString(36).substr(2),
+                id: 'VNode_' + Math.random().toString(36).substr(2),
                 tagName: '',
                 attrs: {},
                 nodeType: '',
@@ -95,7 +109,7 @@ var _proto = {
             }
 
             if (Utils.isElementNode(child)) {
-                me.create(node.children, child, node.id);
+                me.readDomTree(node.children, child, node.id);
             }
 
             virtualDom.push(node);
@@ -133,6 +147,8 @@ var _proto = {
         return null;
     },
     virtualDomRender: function (parent, virtualDom, params) {
+        var me = this;
+
         if (!virtualDom.length || params.stop) {
             return;
         };
@@ -174,7 +190,9 @@ var _proto = {
 
         if (renderObj.type === 'tag' || renderObj.type === 'text') {
             renderObj.parent.appendChild(renderObj.value);
-            var overflow = me.content.height() > me.box.height();
+
+            var contentHeight = parseFloat(Utils.getStyle(me.content, 'height'));
+            var overflow = contentHeight > me.size.height;
 
             if (overflow) {
                 me.params.stop = true;
@@ -188,15 +206,6 @@ var _proto = {
         } else {
             return false;
         }
-    },
-    end: function (params) {
-        // 回手掏，从此vnode向上找，把之前的分叉树全干掉
-        if (params.vNode.nodeType == 3) {
-            var VNode = this.findVNode(params.vNode.id, this.overflowVNode);
-
-            VNode.nodeValue = params.vNode.nodeValue;
-        }
-        this.clearPrev(params.vNode, this.overflowVNode);
     },
     renderText: function (parent, currentVirtualDom, params) {
         if (!currentVirtualDom.nodeValue.length || params.stop) {
@@ -228,7 +237,49 @@ var Utils = {
     },
     isTextNode: function(node) {
         return node.nodeType === 3;
+    },
+    css: function(obj, name) {
+        for(var i in name){
+            if(i=='opacity')
+            {
+                obj.style.filter='alpha(opacity:'+name[i]+')';
+                obj.style.opacity=name[i]/100;
+            }
+            else
+            {
+                obj.style[i]=name[i];
+            }
+        }
+    },
+    GetByClass: function(obj, sName){
+        if(obj.getElementsByClassName){
+            return obj.getElementsByClassName(sName);
+        }else{
+            var arr = [ ];
+            var re = new RegExp('(^|\\s)'+sName+'(\\s|$)');
+            var aEle = obj.getElementsByTagName('*');
+
+            for(var i=0; i<aEle.length; i++){
+                if(re.test(aEle[i].className)){
+                    arr.push(aEle[i]);
+                };
+            };
+
+            return arr;
+        };
+    },
+    getStyle: function (obj, name) {
+        if(obj.currentStyle)
+		{
+		    debugger
+			return obj.currentStyle[name];
+		}
+		else
+		{
+			return getComputedStyle(obj, false)[name];
+		}
     }
 };
+
 
 window.Render = Render;

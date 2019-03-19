@@ -5,7 +5,7 @@
     <title>preview</title>
     <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
-    <script src="./htmlRender.js"></script>
+    <script src="./htmlRenderNew.js"></script>
     <style>
         .c1 {
             width: 300px;
@@ -24,7 +24,7 @@
     let htmlRenderObj = new Render({
         htmlString: renderedHtml
     });
-    console.log(htmlRenderObj);
+    // console.log(htmlRenderObj);
     let computedHtml = htmlRenderObj.render({
         width: 500, // 渲染宽度
         height: 300 // 渲染高度
@@ -32,6 +32,5 @@
     console.log(computedHtml);
     console.log(htmlRenderObj);
 </script>
-<script src="index.js"></script>
 </body>
 </html>
