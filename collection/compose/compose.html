@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>preview</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
+    <script src="./libs/jquery-3.3.1.js"></script>
+    <style>
+        .layout {
+            overflow: hidden;
+            width: 100px;
+            height: 100px;
+            background: green;
+        }
+        .content-inner {
+        }
+        .content0 {
+            width: 100px;
+            height: 100px;
+            background: black;
+        }
+        .content1 {
+            padding: 10px;
+            width: 100px;
+            height: 100px;
+            background: black;
+        }
+    </style>
+</head>
+<body>
+<!--宽度是不能自适应的-->
+<!--高度自适应，content-inner下的第一个元素和最后一个元素不能有margin-->
+<div class="layout">
+    <div class="content-inner">
+        <div class="content0"></div>
+        <div class="content1"></div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,8 +1,16 @@
+// VNode html2json
+
 function Render (opts) {
     this.VNode = _proto.createVirtualDom(opts.htmlString);
 }
 
 var _proto = {
+    /**
+     *
+     * @param size
+     * @returns {*}
+     * json2node 得到指定宽高的node字符串数据
+     */
     render: function (size) {
         var me = this;
 
@@ -38,12 +46,11 @@ var _proto = {
             this.overflowVNode = null;
         }
         var rendedHtml = this.content.innerHTML;
-        this.box.parentNode.removeChild(this.box);
+        // this.box.parentNode.removeChild(this.box);
         this.VNode = this.overflowVNode;
         return rendedHtml;
     },
     end: function (params) {
-        // 回手掏，从此vnode向上找，把之前的分叉树全干掉
         if (params.vNode.nodeType == 3) {
             var VNode = this.findVNode(params.vNode.id, this.overflowVNode);
 
@@ -66,6 +73,7 @@ var _proto = {
         });
         fragment.innerHTML = htmlString;
         document.body.appendChild(fragment);
+        // html2json 更新html的json数据
         this.readDomTree(virtualDom.children, fragment, 'root');
         fragment.parentNode.removeChild(fragment);
         return virtualDom;
@@ -146,6 +154,13 @@ var _proto = {
 
         return null;
     },
+    /**
+     *
+     * @param parent 父节点
+     * @param virtualDom  要渲染的json数据
+     * @param params  是否暂定
+     * 将数组转为dom
+     */
     virtualDomRender: function (parent, virtualDom, params) {
         var me = this;
 
@@ -194,6 +209,11 @@ var _proto = {
             var contentHeight = parseFloat(Utils.getStyle(me.content, 'height'));
             var overflow = contentHeight > me.size.height;
 
+            // if (renderObj.type === 'text' && renderObj.value.nodeValue == '项') {
+            //     debugger
+            //     console.log(contentHeight);
+            //     overflow = true;
+            // }
             if (overflow) {
                 me.params.stop = true;
                 this.end({
@@ -224,6 +244,7 @@ var _proto = {
             return;
         };
 
+        // 将virtualDom上的文本取出并放到rendedText中，其实取出就好了
         currentVirtualDom.nodeValueRended.push(currentVirtualDom.nodeValue.shift());
         this.renderText(parent, currentVirtualDom, params);
     }
@@ -271,7 +292,6 @@ var Utils = {
     getStyle: function (obj, name) {
         if(obj.currentStyle)
 		{
-		    debugger
 			return obj.currentStyle[name];
 		}
 		else
