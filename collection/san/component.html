@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>start - hello</title>
+</head>
+
+<body>
+<script src="san.js"></script>
+<script>
+    function MyApp(options) {
+        san.Component.call(this, options);
+    }
+
+    san.inherits(MyApp, san.Component);
+
+    MyApp.prototype.template = '<ul><li s-for="item in list">{{item}}</li></ul>';
+
+    MyApp.prototype.attached = function () {
+        this.data.set('list', ['san', 'er', 'esui', 'etpl', 'esl']);
+    };
+    var myApp = new MyApp();
+    myApp.attach(document.body);
+</script>
+</body>
+</html>
+
