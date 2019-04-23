@@ -12,6 +12,6 @@ let quick = function (arr) {
         currVal < pivot ? arrLeft.push(currVal) : arrRight.push(currVal);
     }
     return quick(arrLeft).concat([pivot], quick(arrRight));
-}
+};
 let result = quick(arr);
 console.log(result);
