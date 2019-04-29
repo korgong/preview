@@ -1,53 +1,40 @@
-function SuperClass() {
+function Super() {
     this.c = 3;
 }
 
-SuperClass.prototype = {
+Super.prototype = {
     a: 1,
     b: function () {
         console.log('hello,world');
     }
 };
 
-// copy property of source to target
 function extend(target, source) {
-    for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-            var value = source[key];
-            if (value !== undefined) {
-                target[key] = value;
-            }
+    for (let attr in source) {
+        if (source.hasOwnProperty(attr) && source[attr]!== undefined) {
+            target[attr] = source[attr];
         }
     }
 }
 
-// SubClass inherits SuperClass prototype
-function inherits(SuperClass, SubClass) {
-    var subProto = SubClass.prototype;
-    var F = new Function();
-    F.prototype = SuperClass.prototype;
-    SubClass.prototype = new F();
-    SubClass.prototype.constructor = SubClass;
-    extend(SubClass.prototype, subProto);
+function create(proto) {
+    let F = new Function();
+    F.prototype = proto;
+    return new F();
 }
 
-// get SubClass
-function getSubClass(proto) {
-    function SubClass() {
-        // SubClass inherits SuperClass property
-        SuperClass.call(this);
+function getSubClass(Super, proto) {
+    function Sub() {
+        Super.call(this);
     }
-    SubClass.prototype = proto;
-
-    inherits(SuperClass, SubClass);
-
-    return SubClass;
+    Sub.prototype = Object.create ? Object.create(Super.prototype): create(Super.prototype);
+    Sub.prototype.constructor = Sub;
+    extend(Sub.prototype, proto);
+    return Sub;
 }
 
-var SubClass = getSubClass({
+let SubClass = getSubClass(Super,{
     a: 2,
 });
-var subClass = new SubClass();
+let subClass = new SubClass();
 console.log(subClass);
-
-
