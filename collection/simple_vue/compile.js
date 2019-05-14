@@ -1,68 +1,3 @@
-// 创建viewModel
-// 提取解析指令（订阅数据变化，绑定视图更新函数、初始化视图）
-// todo 1、defineProperty只提取了最外层的key值
-function observe(vm, data) {
-    let deep = new Deep();
-    Object.keys(data).forEach(key => {
-        vm[key] = data[key];
-        let value = data[key];
-        Object.defineProperty(vm, key, {
-            set: function (newV) {
-                if (newV === value) {
-                    return;
-                }
-                value = newV;
-                deep.publish();
-            },
-            get: function () {
-                if (Deep.target) {
-                    deep.subscribe(Deep.target);
-                }
-                return value;
-            }
-        });
-    });
-}
-
-function Deep() {
-    this.list = [];
-}
-
-Deep.prototype = {
-    subscribe: function (watcher) {
-        this.list.push(watcher);
-    },
-    publish: function (watcher) {
-        this.list.forEach(watcher => watcher.updater());
-    }
-};
-
-function Watcher(vm, vName, node, type) {
-    Deep.target = this;
-    this.value = null;
-    this.vm = vm;
-    this.vName = vName;
-    this.node = node;
-    this.type = type;
-    this.updater();
-    Deep.target = null;
-}
-
-Watcher.prototype = {
-    updater: function () {
-        this.get();
-        if (this.type === 'input') {
-            this.node.value = this.value;
-        }
-        if (this.type === 'text') {
-            this.node.nodeValue = this.value;
-        }
-    },
-    get: function () {
-        this.value = this.vm[this.vName];
-    }
-};
-
 function compile(vm, node) {
     let reg = /\{\{(.*)\}\}/;
     // element类型
@@ -74,13 +9,20 @@ function compile(vm, node) {
             let vName;
             if (name === 'v-model') {
                 vName = attrs[i].nodeValue;
+                let vNameArr = vName.split('.');
                 node.addEventListener('input', function (e) {
-                    vm[vName] = e.target.value;
+                    let value = vm;
+                    vNameArr.forEach((vName, index) => {
+                        if (index !== vNameArr.length-1) {
+                            value = value[vName];
+                        } else {
+                            value[vName] = e.target.value;
+                        }
+                    });
                 });
-                // node.value = vm[vName];
                 node.removeAttribute(name);
+                new Watcher(vm, vName, node, 'input');
             }
-            new Watcher(vm, vName, node, 'input');
         }
     }
     // text类型
@@ -188,20 +130,3 @@ function nodeToFragment(vm, virtualDom) {
     let dom = json2node(json, vm);
     return dom;
 }
-
-function Vue(option) {
-    this.el = option.el;
-    this.data = option.data;
-    observe(this, option.data);
-    let virtualDom = document.getElementById(this.el);
-    let dom = nodeToFragment(this, virtualDom);
-    virtualDom.parentNode.removeChild(virtualDom);
-    document.body.appendChild(dom);
-}
-
-let vm = new Vue({
-    el: 'app',
-    data: {
-        content: 'hello, world!'
-    }
-});
