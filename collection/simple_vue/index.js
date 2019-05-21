@@ -13,6 +13,14 @@ Vue.prototype = {
                 }
             })
         })
+    },
+    createFragment(el) {
+        let fragment = document.createDocumentFragment();
+        let child;
+        while (child = el.firstChild) {
+            fragment.appendChild(child);
+        }
+        return fragment;
     }
 };
 
@@ -21,8 +29,12 @@ function Vue(option) {
     this.data = option.data;
     this.proxy(this, this.data);
     observe(this, option.data);
-    let virtualDom = document.getElementById(this.el);
-    let dom = nodeToFragment(this, virtualDom);
-    virtualDom.parentNode.removeChild(virtualDom);
-    document.body.appendChild(dom);
+    this.$el = document.querySelector(this.el);
+    if (this.$el) {
+        //转换原始node并将其加入一个新的片段（原始node会被删除）
+        this.$fragment = this.createFragment(this.$el);
+        //编译这个片段
+        compile(this, this.$fragment);
+        this.$el.appendChild(this.$fragment);
+    }
 }
