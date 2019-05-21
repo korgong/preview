@@ -28,6 +28,39 @@ function compileAttributes(vm, node) {
             node.removeAttribute(name);
             new Watcher(vm, vName, node, 'input');
         }
+        if (name === 'v-for') {
+            let expression = attr.nodeValue;
+            let itemName = expression.split('in')[0].replace(/\s/g, '');
+            let arrayName = expression.split('in')[1].replace(/\s/g, '').split('.');
+            let parentNode = node.parentNode;
+            let startNode = document.createTextNode('');
+            let endNode = document.createTextNode('');
+
+            // 替换原始node
+            parentNode.replaceChild(endNode, node);
+            parentNode.insertBefore(startNode, endNode);
+
+            let value = vm;
+            //得到数组的值 可能是data.items.content = [1,2,3]
+            arrayName.forEach(function (curVal) {
+                value = value[curVal];
+            });
+
+            // 有多少数组就创造多少节点
+            value.forEach(function (item, index) {
+                let cloneNode = node.cloneNode(true);
+                cloneNode.removeAttribute(name);
+                parentNode.insertBefore(cloneNode, endNode);
+                //forvm原型继承vm，并且增加两个属性
+                let forVm = Object.create(vm);
+                // 增加$index下标
+                forVm.$index = index;
+                // 绑定item作用域
+                forVm[itemName] = item;
+                // 继续递归编译每个结点
+                compile(forVm, cloneNode);
+            });
+        }
     });
     if (node.childNodes && node.childNodes.length) {
         compile(vm, node);
