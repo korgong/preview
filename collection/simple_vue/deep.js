@@ -1,13 +1,10 @@
 let uid = 0;
-function Deep() {
+function Dep() {
     this.id = ++uid;
     this.list = [];
 }
 
-Deep.prototype = {
-    dep: function () {
-        Deep.target.addDep(this);
-    },
+Dep.prototype = {
     subscribe: function (watcher) {
         this.list.push(watcher);
     },

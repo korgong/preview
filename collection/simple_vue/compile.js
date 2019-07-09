@@ -71,7 +71,9 @@ function isTextNode(node) {
     return node.nodeType === 3;
 }
 
-
+/**
+ * compile template
+ * **/
 function compile(vm, node) {
     let childNodes = node.childNodes;
     [].slice.call(childNodes).forEach(child => {

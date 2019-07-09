@@ -1,3 +1,6 @@
+/**
+ * subscribe data, and bind updater
+ * **/
 function Watcher(vm, vName, node, type) {
     // watcher监听的属性的Id
     this.depIds = {};
@@ -11,7 +14,7 @@ function Watcher(vm, vName, node, type) {
 
 Watcher.prototype = {
     //观察某个属性
-    addDep (dep) {
+    isAddToDep (dep) {
         if (!this.depIds.hasOwnProperty(dep.id)) {
             // 添加订阅者
             dep.subscribe(this);
@@ -29,11 +32,11 @@ Watcher.prototype = {
         }
     },
     get: function () {
-        Deep.target = this;
+        Dep.target = this;
         let vNameArr = this.vName.split('.');
         this.value = vNameArr.reduce((accumulator, curr) => {
             return accumulator[curr];
         }, this.vm);
-        Deep.target = null;
+        Dep.target = null;
     }
 };

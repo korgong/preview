@@ -1,14 +1,20 @@
 Vue.prototype = {
+    /**
+     * intercept the attribute of vm, and correspond to vm.data
+     * vm.attribute => vm.data.attribute
+     * @param vm
+     * @param data
+     */
     proxy: function (vm, data) {
-        // vm.属性 => vm.data.属性
         Object.keys(data).forEach(key => {
             Object.defineProperty(vm, key, {
-                set: function (newVal) {
+                set (newVal) {
+                    // console.log('intercept the attribute of vm, and correspond to vm.data');
                     if(newVal !== data[key]) {
                         data[key] = newVal;
                     }
                 },
-                get: function () {
+                get () {
                     return data[key];
                 }
             })
@@ -28,7 +34,7 @@ function Vue(option) {
     this.el = option.el;
     this.data = option.data;
     this.proxy(this, this.data);
-    observe(this, option.data);
+    observe(this.data);
     this.$el = document.querySelector(this.el);
     if (this.$el) {
         //转换原始node并将其加入一个新的片段（原始node会被删除）
