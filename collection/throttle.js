@@ -21,9 +21,14 @@ let method = function () {
 };
 function throttle(method, delay) {
     let timeout = null;
+    let executeTime = 0;
     return function (arg) {
         let context = this;
         let args = arguments;
+        if (executeTime === 0) {
+            method.apply(context, args);
+            executeTime++;
+        }
         clearInterval(timeout);
         timeout = setTimeout(function () {
             method.apply(context, args);
@@ -51,7 +56,9 @@ function debounce(method, delay, mustRunTime) {
         let currentTime = new Date().getTime();
         clearTimeout(timer);
         if (!startTime) {
+            // first time call
             startTime = currentTime;
+            method.apply(that, args);
         } else if (currentTime - startTime >= mustRunTime) {
             method.apply(that, args);
             startTime = currentTime;
@@ -66,7 +73,7 @@ function debounce(method, delay, mustRunTime) {
 // 第一次和第二次小于最小执行时间，都被clear。但是初始时间一直被记录。
 // 第三次大于最小间隔，执行。第四次小于最小间隔。但是没有新的执行动作。40ms后就会执行。
 let fn = debounce(method, 50, 30);
-fn(1)
+fn(1);
 setTimeout(function () {
     fn(2);
 }, 20);
