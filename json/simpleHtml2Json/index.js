@@ -1,6 +1,6 @@
 let virtualDom = document.querySelector('.app');
 
-let getAttrInJson = function (rootJson, virtualDom) {
+let updateAttrInJson = function (rootJson, virtualDom) {
     for (let attr in rootJson) {
         if (attr === 'attributes') {
             if (virtualDom[attr]) {
@@ -22,14 +22,14 @@ let getAttrInJson = function (rootJson, virtualDom) {
 function getJson(virtualDom) {
     // 创建父节点的json
     let rootJson = {
-        nodeType: 1,  // 文本节点
+        nodeType: 1,  // 3为文本节点
+        nodeValue: null,  // 文本节点是字符串,其他事null
         nodeName: 'DIV',  // 文本节点#text
         attributes: [],
-        nodeValue: null,  // 文本节点是字符串
         childNodes: [],
     };
     // 更新json属性
-    getAttrInJson(rootJson, virtualDom);
+    updateAttrInJson(rootJson, virtualDom);
     // 得到父节点子节点，将子节点放入json的childNodes中。
     // 同时子节点的childNodes的个数不为空，对子节点进行递归
     let childNodes = virtualDom.childNodes;
@@ -42,7 +42,7 @@ function getJson(virtualDom) {
             childNodes: [],
         };
         // 更新json属性
-        getAttrInJson(json, child);
+        updateAttrInJson(json, child);
         // 判断子节点的类型，确定是否递归
         if (!child.childNodes.length) {
             rootJson.childNodes.push(json);
