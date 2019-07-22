@@ -1,10 +1,17 @@
 // VNode html2json
 
+// String of html to node
+// node2json
+// json2node
+// canRender and record the last width and height. And upgrade it
+// upgrade to record the id of the last node then clearPrev
+
+
 function Render (opts) {
-    this.VNode = _proto.createVirtualDom(opts.htmlString);
+    this.VNode = this.getJsonByString(opts.htmlString);
 }
 
-var _proto = {
+Render.prototype = {
     /**
      *
      * @param size
@@ -12,16 +19,11 @@ var _proto = {
      * json2node 得到指定宽高的node字符串数据
      */
     render: function (size) {
-        var me = this;
-
         if (!this.VNode) {
             return '';
         }
 
-        var renderStage = document.getElementById('render-stage');
-
-        renderStage && renderStage.parentNode.removeChild(renderStage);
-        var renderStage = document.createElement('div');
+        let renderStage = document.createElement('div');
 
         renderStage.id = 'render-stage';
         renderStage.innerHTML = '<div class="box-inner"></div>';
@@ -30,8 +32,8 @@ var _proto = {
             height: size.height + 'px',
             position: 'absolute',
             overflow: 'hidden',
-            left: 100 + 'px',
-            top: 0
+            left: -1000 + 'px',
+            top: '-1000px'
         });
         document.body.appendChild(renderStage);
         this.box = renderStage;
@@ -41,62 +43,63 @@ var _proto = {
         this.params = {
             stop: false
         };
-        this.virtualDomRender(this.content, this.VNode.children, this.params);
+        this.json2node(this.content, this.VNode.children, this.params);
         if (!this.params.stop) {
             this.overflowVNode = null;
         }
-        var rendedHtml = this.content.innerHTML;
+        let renderedHtml = this.content.innerHTML;
         // this.box.parentNode.removeChild(this.box);
         this.VNode = this.overflowVNode;
-        return rendedHtml;
+        return renderedHtml;
     },
-    end: function (params) {
-        if (params.vNode.nodeType == 3) {
-            var VNode = this.findVNode(params.vNode.id, this.overflowVNode);
-
-            VNode.nodeValue = params.vNode.nodeValue;
+    end: function (virtualDom) {
+        if (virtualDom.nodeType === 3) {
+            let VNode = this.findVNode(virtualDom.id, this.overflowVNode);
+            VNode.nodeValue = virtualDom.nodeValue;
         }
-        this.clearPrev(params.vNode, this.overflowVNode);
+        this.clearPrev(virtualDom, this.overflowVNode);
     },
-    createVirtualDom: function (htmlString) {
-        var virtualDom = {
+    /**
+     * revert htmlString to node. the node2json
+     * @param htmlString
+     * @returns {{children: Array, id: string}}
+     */
+    getJsonByString: function (htmlString) {
+        let virtualDom = {
             id: 'root',
             children: []
         };
 
-        var fragment = document.getElementById('fragment');
-        fragment && fragment.parentNode.removeChild(fragment);
-        fragment = document.createElement('div');
+        let fragment = document.createElement('div');
         fragment.id = 'fragment';
         Utils.css({
             'display': 'none'
         });
         fragment.innerHTML = htmlString;
         document.body.appendChild(fragment);
-        // html2json 更新html的json数据
-        this.readDomTree(virtualDom.children, fragment, 'root');
+        // node2json and update virtualDom
+        this.getJson(virtualDom.children, fragment, 'root');
         fragment.parentNode.removeChild(fragment);
         return virtualDom;
     },
-    readDomTree: function (virtualDom, parentNode, virtualDomId) {
-        var me = this;
-        var childNodes = parentNode.childNodes;
+    getJson: function (virtualDom, parentNode, virtualDomId) {
+        let me = this;
+        let childNodes = parentNode.childNodes;
         if (!childNodes.length) return;
 
         [].slice.call(childNodes).forEach(function (child) {
-            var node = {
+            let node = {
                 id: 'VNode_' + Math.random().toString(36).substr(2),
                 tagName: '',
                 attrs: {},
                 nodeType: '',
                 nodeValue: '',
-                nodeValueRended: [],
                 children: [],
-                rended: false,
                 parentVnodeId: virtualDomId || 'root'
             };
-            var attributes = child.attributes;
+            let attributes = child.attributes;
 
+            // update the attributes in node
             if (Utils.isElementNode(child)) {
                 node.nodeType = 1;
                 node.tagName = child.tagName.toLocaleLowerCase();
@@ -108,28 +111,35 @@ var _proto = {
             }
 
             if (attributes) {
-                for (var i = 0; i < attributes.length; i++) {
-                    var attr = attributes[i].nodeName;
-                    var val = attributes[i].nodeValue;
+                for (let i = 0; i < attributes.length; i++) {
+                    let attr = attributes[i].nodeName;
+                    let val = attributes[i].nodeValue;
 
                     node.attrs[attr] = val;
                 }
             }
 
-            if (Utils.isElementNode(child)) {
-                me.readDomTree(node.children, child, node.id);
-            }
-
             virtualDom.push(node);
+            // if the child is an element, continue this operation
+            if (Utils.isElementNode(child)) {
+                me.getJson(node.children, child, node.id);
+            }
         });
     },
+    /**
+     * clear the previous nodes under the parent node
+     * @param child
+     * @param root
+     */
     clearPrev: function (child, root) {
-        var parentNode = this.findVNode(child.parentVnodeId, root);
+        // vNode: renderObj.virtualDom,
+        // overflow: true
+        let parentNode = this.findVNode(child.parentVnodeId, root);
         if (!parentNode) return;
-        var childId = child.id;
-        var children = parentNode.children;
+        let childId = child.id;
+        let children = parentNode.children;
 
-        for (var i = 0; i < children.length; i++) {
+        for (let i = 0; i < children.length; i++) {
             if (children[i].id != childId) {
                 children.splice(i, 1);
                 i--;
@@ -144,8 +154,8 @@ var _proto = {
         if (nodeId == node.id) {
             return node;
         }
-        for (var i = 0; i < node.children.length; i++) {
-            var result = this.findVNode(nodeId, node.children[i]);
+        for (let i = 0; i < node.children.length; i++) {
+            let result = this.findVNode(nodeId, node.children[i]);
 
             if (result) {
                 return result;
@@ -157,27 +167,26 @@ var _proto = {
     /**
      *
      * @param parent 父节点
-     * @param virtualDom  要渲染的json数据
-     * @param params  是否暂定
+     * @param virtualDom  要渲染的json数据(array)
+     * @param params  是否暂停
      * 将数组转为dom
      */
-    virtualDomRender: function (parent, virtualDom, params) {
-        var me = this;
+    json2node: function (parent, virtualDom, params) {
 
         if (!virtualDom.length || params.stop) {
             return;
-        };
+        }
 
-        var currentVirtualDom = virtualDom.shift();
+        let currentVirtualDom = virtualDom.shift();
 
         if (currentVirtualDom.nodeType === 1) {
-            var node = document.createElement(currentVirtualDom.tagName);
+            let node = document.createElement(currentVirtualDom.tagName);
 
-            for (var attr in currentVirtualDom.attrs) {
+            for (let attr in currentVirtualDom.attrs) {
                 node.setAttribute(attr, currentVirtualDom.attrs[attr]);
             }
 
-            var pass = this.canRender({
+            let pass = this.canRender({
                 type: 'tag',
                 value: node,
                 parent: parent,
@@ -185,44 +194,37 @@ var _proto = {
             });
             if (!pass) {
                 return;
-            };
+            }
 
             if (currentVirtualDom.children.length) {
-                this.virtualDomRender(node, currentVirtualDom.children, params);
+                this.json2node(node, currentVirtualDom.children, params);
             }
         } else {
             this.renderText(parent, currentVirtualDom, params);
         }
 
-        this.virtualDomRender(parent, virtualDom, params);
+        this.json2node(parent, virtualDom, params);
     },
-    canRender: function (renderObj) {
-        var me = this;
+    canRender: function ({type, value, parent, virtualDom}) {
+        let me = this;
 
+        // todo what does it work？
         if (me.params.stop) {
             return true;
         }
 
-        if (renderObj.type === 'tag' || renderObj.type === 'text') {
-            renderObj.parent.appendChild(renderObj.value);
+        if (type === 'tag' || type === 'text') {
+            parent.appendChild(value);
 
-            var contentHeight = parseFloat(Utils.getStyle(me.content, 'height'));
-            var overflow = contentHeight > me.size.height;
+            let contentHeight = parseFloat(Utils.getStyle(me.content, 'height'));
+            let overflow = contentHeight > me.size.height;
 
-            // if (renderObj.type === 'text' && renderObj.value.nodeValue == '项') {
-            //     debugger
-            //     console.log(contentHeight);
-            //     overflow = true;
-            // }
             if (overflow) {
                 me.params.stop = true;
-                this.end({
-                    vNode: renderObj.virtualDom,
-                    overflow: true
-                });
-                renderObj.parent.removeChild(renderObj.value);
+                this.end(virtualDom);
+                parent.removeChild(value);
             }
-            return overflow? false: true;
+            return !overflow;
         } else {
             return false;
         }
@@ -230,29 +232,26 @@ var _proto = {
     renderText: function (parent, currentVirtualDom, params) {
         if (!currentVirtualDom.nodeValue.length || params.stop) {
             return;
-        };
-        var willRenderTxt = currentVirtualDom.nodeValue[0];
-        var willRenderNode = document.createTextNode(willRenderTxt);
-        var pass = this.canRender({
+        }
+        let willRenderTxt = currentVirtualDom.nodeValue[0];
+        let willRenderNode = document.createTextNode(willRenderTxt);
+        let pass = this.canRender({
             type: 'text',
             value: willRenderNode,
             parent: parent,
-            virtualDom: currentVirtualDom,
-            rendedText: currentVirtualDom.nodeValueRended
+            virtualDom: currentVirtualDom
         });
         if (!pass) {
             return;
-        };
+        }
 
-        // 将virtualDom上的文本取出并放到rendedText中，其实取出就好了
-        currentVirtualDom.nodeValueRended.push(currentVirtualDom.nodeValue.shift());
+        // 将插入成功的文字从virtualDom上取出
+        currentVirtualDom.nodeValue.shift();
         this.renderText(parent, currentVirtualDom, params);
     }
-}
+};
 
-Render.prototype = _proto;
-
-var Utils = {
+let Utils = {
     isElementNode: function(node) {
         return node.nodeType === 1;
     },
@@ -260,7 +259,7 @@ var Utils = {
         return node.nodeType === 3;
     },
     css: function(obj, name) {
-        for(var i in name){
+        for(let i in name){
             if(i=='opacity')
             {
                 obj.style.filter='alpha(opacity:'+name[i]+')';
@@ -276,18 +275,18 @@ var Utils = {
         if(obj.getElementsByClassName){
             return obj.getElementsByClassName(sName);
         }else{
-            var arr = [ ];
-            var re = new RegExp('(^|\\s)'+sName+'(\\s|$)');
-            var aEle = obj.getElementsByTagName('*');
+            let arr = [ ];
+            let re = new RegExp('(^|\\s)'+sName+'(\\s|$)');
+            let aEle = obj.getElementsByTagName('*');
 
-            for(var i=0; i<aEle.length; i++){
+            for(let i=0; i<aEle.length; i++){
                 if(re.test(aEle[i].className)){
                     arr.push(aEle[i]);
-                };
-            };
+                }
+            }
 
             return arr;
-        };
+        }
     },
     getStyle: function (obj, name) {
         if(obj.currentStyle)
