@@ -32,9 +32,13 @@
     // console.log(htmlRenderObj);
     let computedHtml = htmlRenderObj.render({
         width: 772, // 渲染宽度
-        height: 1900 // 渲染高度
+        height: 900 // 渲染高度
     });
-    $('.app').html(computedHtml);
+    let computedHtml1 = htmlRenderObj.render({
+        width: 772, // 渲染宽度
+        height: 300 // 渲染高度
+    });
+    $('.app').html(computedHtml+computedHtml1);
     // console.log(computedHtml);
     // console.log(htmlRenderObj);
 </script>
