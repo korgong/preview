@@ -21,15 +21,15 @@ let method = function () {
 };
 function throttle(method, delay) {
     let timeout = null;
-    let executeTime = 0;
+    let isFirst = true;
     return function (arg) {
         let context = this;
         let args = arguments;
-        if (executeTime === 0) {
+        if (isFirst) {
             method.apply(context, args);
-            executeTime++;
+            isFirst = false;
         }
-        clearInterval(timeout);
+        clearTimeout(timeout);
         timeout = setTimeout(function () {
             method.apply(context, args);
         }, delay)
@@ -51,17 +51,13 @@ function debounce(method, delay, mustRunTime) {
     let timer = null;
     let startTime = null;
     return function () {
+        clearTimeout(timer);
         let that = this;
         let args = arguments;
-        let currentTime = new Date().getTime();
-        clearTimeout(timer);
-        if (!startTime) {
-            // first time call
+        let currentTime = Date.now();
+        if (!startTime || currentTime - startTime >= mustRunTime) {
             startTime = currentTime;
             method.apply(that, args);
-        } else if (currentTime - startTime >= mustRunTime) {
-            method.apply(that, args);
-            startTime = currentTime;
         } else {
             timer = setTimeout(function () {
                 method.apply(that, args);
