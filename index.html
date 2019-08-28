@@ -12,9 +12,187 @@
     </style>
 </head>
 <body>
+<div class="app"><input style="background: lightblue" v-model="inner.name"><span v-click="alert(123)">{{inner.name}}</span></div>
 <script src="index.js"></script>
 <script>
+    var id = 0;
+    function Dependency() {
+        this.id = ++id;
+        this.list = [];
+    }
 
+    Dependency.prototype = {
+        constructor: Dependency,
+        subscribe(watcher) {
+            this.list.push(watcher);
+        },
+        publish() {
+            this.list.forEach(function (watcher) {
+                watcher.updater();
+            })
+        }
+
+    };
+    function walk(data) {
+        Object.keys(data).forEach(key => {
+            observer(data, key, data[key]);
+        });
+    }
+
+    /**
+     *
+     * @param vm
+     * @param node
+     * @param express
+     * @param type
+     * @constructor
+     */
+    function Watcher(vm, node, express, type) {
+        this.vm = vm;
+        this.node = node;
+        this.express = express;
+        this.type = type;
+        this.deplist = {};
+        this.updater();
+    }
+
+    Watcher.prototype = {
+        constructor: Watcher,
+        get() {
+            Dependency.target = this;
+            let expressArr = this.express.split('.');
+            let value = this.vm;
+            expressArr.forEach(key => {
+                value = value[key];
+            });
+            return value;
+        },
+        hasAddedSubscribe(dep) {
+            if (!this.deplist[dep.id]) {
+                this.deplist[dep.id] = dep;
+                dep.subscribe(this);
+            }
+        },
+        updater() {
+            let value = this.get();
+            if (this.type === 'text') {
+                this.node.nodeValue = value;
+            } else if (this.type === 'input') {
+                this.node.value = value;
+            }
+        }
+    };
+    function observer(data, key, value) {
+        var dep = new Dependency();
+        if (typeof value === 'object') {
+            walk(value);
+        }
+        Object.defineProperty(data, key, {
+            set(newV) {
+                if (value !== newV) {
+                    if (typeof newV !== 'object') {
+                        value = newV;
+                    } else {
+                        value = newV;
+                        // 重新观察属性
+                        walk(newV);
+                    }
+                    dep.publish();
+                }
+            },
+            get() {
+                // Dependency.target === Watcher (true)
+                if (Dependency.target) {
+                    Dependency.target.hasAddedSubscribe(dep);
+                }
+                return value;
+            }
+        });
+    }
+    function isTextNode(node) {
+        return node.nodeType === 3;
+    }
+    function compileAttribute(vm, node) {
+        var attributesArr = [].slice.call(node.attributes);
+        attributesArr.forEach((key, index) => {
+            var attributeObj = attributesArr[index];
+            let attributeName = attributeObj.nodeName;
+            if (attributeName === 'v-model') {
+                var express = attributeObj.nodeValue;
+                var expressArr = express.trim().split('.');
+                node.addEventListener('input', function (e) {
+                    var value = vm;
+                    expressArr.forEach((command, index) => {
+                        if (index !== expressArr.length - 1) {
+                            value = value[command];
+                        } else {
+                            value[command] = e.target.value;
+                        }
+                    });
+                });
+                node.removeAttribute(attributeName);
+                // function Watcher(vm, node, express, type)
+                new Watcher(vm, node, express, 'input');
+            }
+            if (attributeName === 'v-click') {
+                let code = attributeObj.nodeValue;
+                node.addEventListener('click', function () {
+                    eval(code);
+                });
+            }
+        });
+        if (node.childNodes.length > 0) {
+            compile(vm, node);
+        }
+    }
+    function compile(vm, node) {
+        let childNodes = [].slice.call(node.childNodes);
+        childNodes.forEach(function (child) {
+            if (isTextNode(child)) {
+                // function Watcher(vm, node, express, type)
+                let express = child.nodeValue.trim().replace(/{{(.*)}}/, '$1');
+                new Watcher(vm, child, express, 'text');
+            } else {
+                compileAttribute(vm, child);
+            }
+        })
+    }
+    function MVVM(option) {
+        this.el = document.querySelector(option.el);
+        this._data = option.data;
+        this.proxy(this._data);
+        walk(this._data);
+        compile(this, this.el);
+    }
+
+    MVVM.prototype = {
+        constructor: MVVM,
+        proxy (data) {
+            Object.keys(data).forEach((key) => {
+                Object.defineProperty(this, key, {
+                    set(newV) {
+                        if (newV !== data[key]) {
+                            data[key] = newV;
+                        }
+                    },
+                    get() {
+                        return data[key];
+                    }
+                });
+            });
+        }
+    };
+
+    var data = {
+        name: 'kor',
+        inner: {
+            name: 'chongqing'
+        }
+    };
+    var vm = new MVVM({
+        el: '.app',
+        data: data
+    });
 </script>
 </body>
 </html>
