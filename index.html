@@ -12,10 +12,12 @@
     </style>
 </head>
 <body>
-<div class="app"><input style="background: lightblue" v-model="inner.name"><span v-click="alert(123)">{{inner.name}}</span></div>
+<div class="app"><input style="background: lightblue" v-model="inner.name"><span style="padding-right: 30px">{{inner.name}}</span><span v-for="place in places" v-click="alert(123)">{{place}}</span>
+</div>
 <script src="index.js"></script>
 <script>
     var id = 0;
+
     function Dependency() {
         this.id = ++id;
         this.list = [];
@@ -33,6 +35,7 @@
         }
 
     };
+
     function walk(data) {
         Object.keys(data).forEach(key => {
             observer(data, key, data[key]);
@@ -82,6 +85,7 @@
             }
         }
     };
+
     function observer(data, key, value) {
         var dep = new Dependency();
         if (typeof value === 'object') {
@@ -109,9 +113,11 @@
             }
         });
     }
+
     function isTextNode(node) {
         return node.nodeType === 3;
     }
+
     function compileAttribute(vm, node) {
         var attributesArr = [].slice.call(node.attributes);
         attributesArr.forEach((key, index) => {
@@ -139,12 +145,40 @@
                 node.addEventListener('click', function () {
                     eval(code);
                 });
+                node.removeAttribute(attributeName);
+            }
+            if (attributeName === 'v-for') {
+                let parentNode = node.parentNode;
+                let code = attributeObj.nodeValue;
+                let keyValArr = code.split('in');
+                let itemStr = keyValArr[0].replace(/\s*/g, '');
+                let valStr = keyValArr[1].replace(/\s*/g, '');
+                let arr = valStr.split('.');
+                let value = vm;
+                arr.forEach(key => {
+                    value = value[key];
+                });
+                // delete the v-for command
+                node.removeAttribute(attributeName);
+                let startNode = document.createTextNode('');
+                parentNode.replaceChild(startNode, node);
+                for (let i = value.length-1; i >= 0; i--) {
+                    // clone the current node
+                    let cloneNode = node.cloneNode(true);
+                    // insert node after the current node
+                    parentNode.insertBefore(cloneNode, startNode);
+                    let forVm = Object.create(vm);
+                    forVm.index = i;
+                    forVm[itemStr] = value[i];
+                    compileAttribute(forVm, cloneNode);
+                }
             }
         });
         if (node.childNodes.length > 0) {
             compile(vm, node);
         }
     }
+
     function compile(vm, node) {
         let childNodes = [].slice.call(node.childNodes);
         childNodes.forEach(function (child) {
@@ -157,6 +191,7 @@
             }
         })
     }
+
     function MVVM(option) {
         this.el = document.querySelector(option.el);
         this._data = option.data;
@@ -167,7 +202,7 @@
 
     MVVM.prototype = {
         constructor: MVVM,
-        proxy (data) {
+        proxy(data) {
             Object.keys(data).forEach((key) => {
                 Object.defineProperty(this, key, {
                     set(newV) {
@@ -187,7 +222,8 @@
         name: 'kor',
         inner: {
             name: 'chongqing'
-        }
+        },
+        places: ['amoy', 'peking', 'shanghai']
     };
     var vm = new MVVM({
         el: '.app',
