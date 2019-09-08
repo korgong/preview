@@ -113,6 +113,13 @@
 // 方法5
 //  [ 17, 24, 31, 45, 50, 63, 85, 96 ]
 // only one arr
+//   ①②④③
+//   ①
+//   ①②
+//   ①②④
+//   ①② ④
+//   ①②③④
+
 let arr = [85, 24, 63, 45, 17, 31, 96, 50];
 
 function insert(myArr) {
@@ -121,12 +128,11 @@ function insert(myArr) {
         let value = myArr[i];
         let j;
         // 将value和当前元素比较，如果value小于当前元素，当前元素后移一位。当前元素的下标-1
-        // 如果valve大于当前元素。当前元素的下一位就是valve。
-        // 或者value一直小于当前元素。那么已排序的前一个元素就是value
-        // 两种情况之一就结束循环
         for (j = i - 1; j > -1 && myArr[j] > value; j--) {
             myArr[j + 1] = myArr[j];
         }
+        // 如果valve大于等于当前元素。当前元素的下一位就是valve。
+        // 如果value小于所有元素，当前下标为-1，那么下一位就是value
         myArr[j + 1] = value;
 
     }
