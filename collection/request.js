@@ -18,9 +18,9 @@ function ajax(url, cb, data) {
 }
 
 // 2、abort previous request by jquery
-function getRequest() {
+function abortPreviousRequest() {
     let xhr;
-    return function (url) {
+    return function (url, callback) {
         if (xhr && xhr.readyState !== 4) {
             xhr.abort();
         }
@@ -28,6 +28,7 @@ function getRequest() {
             url: url,
             success (data) {
                 // do something
+                callback(data);
             },
             error(err) {
 
@@ -49,7 +50,7 @@ function getAbortAbleFetch(url, timeout) {
     });
     let request = fetch(url);
 
-    let abortAbleFetch = Promise.all([
+    let abortAbleFetch = Promise.race([
         abortAblePromise,
         request
     ]);
@@ -105,20 +106,17 @@ const request = require('request');
 function http(option) {
     let interval = null;
     let retry = 0;
-    let reqFinish = false;
     let inst = null;
     let timeout = 3000;
     return new Promise((resolve, reject) => {
         let cb = function (err, resp, httpBody) {
-            if (!reqFinish) {
-                if (err) {
-                    console.error('base scrape method error and retry, error message:', err);
-                    inst = request.get(option, cb);
-                }
-                else {
-                    resolve(httpBody);
-                    clearInterval(interval);
-                }
+            if (err) {
+                console.error('base scrape method error and retry, error message:', err);
+                inst = request.get(option, cb);
+            }
+            else {
+                resolve(httpBody);
+                clearInterval(interval);
             }
         };
         inst = request.get(option, cb);
