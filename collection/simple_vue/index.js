@@ -21,9 +21,11 @@ Vue.prototype = {
         })
     },
     createFragment(el) {
+        // 文档片段存在于内存中，并不在DOM树中，所以将子元素插入到文档片段时不会引起页面回流
         let fragment = document.createDocumentFragment();
         let child;
         while (child = el.firstChild) {
+            // 导致当前元素从原来dom中移除
             fragment.appendChild(child);
         }
         return fragment;

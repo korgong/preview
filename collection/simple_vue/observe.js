@@ -31,5 +31,7 @@ function observe(data) {
     if (typeof data !== 'object') {
         return
     }
+    // traverse an object
+    // todo deal with array
     Object.keys(data).forEach(key => defineReactive(data, key, data[key]));
 }
