@@ -24,6 +24,8 @@ class MyPromise {
         if (this._status !== PENDING) {
             return;
         }
+        // when you resolve a val which is a instance of MyPromise, you need to invoke val.then(fulfilled, rejected)
+        // if you resolve a ordinary val, just invoke fulfilled(val)
         let run = () => {
             let fulfilled = (newVal) => {
                 this._status = RESOLVED;
@@ -91,6 +93,49 @@ class MyPromise {
             };
             this._fulfilledQueues.push(fullfilled);
             this._rejectedQueues.push(rejected);
+        });
+    }
+
+    static resolve(val) {
+        if (val instanceof MyPromise) {
+            return val;
+        }
+        return new MyPromise(resolve => resolve(val));
+    }
+
+    static reject(err) {
+        return new MyPromise((resolve, reject) => {
+            reject(err);
+        });
+    }
+
+    static all(list) {
+        return new MyPromise((resolve, reject) => {
+            let values = [];
+            let count = 0;
+            for (let [index, item] of list.entries()) {
+                this.resolve(item).then(res => {
+                    values[index] = res;
+                    count++;
+                    if (count === list.length) {
+                        resolve(values);
+                    }
+                }, error => {
+                    reject(error);
+                });
+            }
+        });
+    }
+
+    static race(list) {
+        return new Promise((resolve, reject) => {
+            for (let p of list) {
+                this.resolve(p).then(res => {
+                    resolve(res);
+                }, err => {
+                    reject(err);
+                });
+            }
         });
     }
 }
