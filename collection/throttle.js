@@ -28,6 +28,8 @@ function throttle(method, delay) {
         if (isFirst) {
             method.apply(context, args);
             isFirst = false;
+            // 第一次执行后结束
+            return;
         }
         clearTimeout(timeout);
         timeout = setTimeout(function () {
