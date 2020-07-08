@@ -52,8 +52,9 @@ function throttle(method, delay) {
 function debounce(method, delay, mustRunTime) {
     let timer = null;
     let startTime = null;
-    return function () {
+    var debounced = function () {
         clearTimeout(timer);
+        // this points to the object calling method debounced
         let that = this;
         let args = arguments;
         let currentTime = Date.now();
@@ -65,7 +66,8 @@ function debounce(method, delay, mustRunTime) {
                 method.apply(that, args);
             }, delay)
         }
-    }
+    };
+    return debounced;
 }
 
 // 第一次和第二次小于最小执行时间，都被clear。但是初始时间一直被记录。
