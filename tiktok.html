@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <title>preview</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
+    <link rel="stylesheet" href="index.css">
+    <script>
+        (function () {
+            // 设置rem基准值
+            var win = window;
+            var html = document.documentElement;
+            var timer = null;
+
+            function setRem() {
+                var width = html.getBoundingClientRect().width;
+                // width = Math.min(width, 420);
+                // 真实尺寸除以75
+                var rem = width / 10;
+                // win.rem = rem;
+                html.style.fontSize = rem + 'px';
+            }
+
+            win.addEventListener('resize',function() {
+                clearTimeout(timer);
+                timer = setTimeout(setRem, 300);
+            }, false);
+            setRem();
+        })();
+    </script>
+    <link rel="stylesheet" href="./libs/swiper.css">
+    <script src="./libs/swiper.js"></script>
+    <style>
+        .app {
+            background: #000;
+            width: 10rem;
+        }
+        .swiper-container {
+            width: 10rem;
+            height: 4rem;
+            font-size: 12px;
+            color: #fff;
+        }
+        .slide-content {
+            width: calc(100% - 40px);
+            margin: 20px;
+        }
+        .second-content {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+        </div>
+    </div>
+    <div>
+        content
+    </div>
+</div>
+<script>
+    let partCont = function (slideContent, step, data) {
+        let firstContent = document.createElement('div');
+        if (step === 1) {
+            firstContent.className = 'first-content';
+        } else {
+            firstContent.className = 'second-content';
+        }
+        slideContent.appendChild(firstContent);
+        let cellPhone = document.createElement('div');
+        cellPhone.className = 'cell-phone';
+        let appreciation = document.createElement('div');
+        appreciation.className = 'appreciation';
+        firstContent.appendChild(cellPhone);
+        firstContent.appendChild(appreciation);
+        if (step === 1) {
+            cellPhone.appendChild(document.createTextNode(data[0].phone));
+            appreciation.appendChild(document.createTextNode(data[0].description));
+        } else {
+            cellPhone.appendChild(document.createTextNode(data[1].phone));
+            appreciation.appendChild(document.createTextNode(data[1].description));
+        }
+    };
+    let createSlide = function (data) {
+        let swiperSlide = document.createElement('div');
+        document.querySelector('.swiper-wrapper').appendChild(swiperSlide);
+        swiperSlide.className = 'swiper-slide';
+        let slideContent = document.createElement('div');
+        slideContent.className = 'slide-content';
+        swiperSlide.appendChild(slideContent);
+        partCont(slideContent, 1, data);
+        partCont(slideContent, 2, data);
+    };
+    let dataList = [[{phone: 18654467765, description: '这个平台真的很好，不仅下载迅速，而且还有现金奖励'}, {
+        phone: 28654467765,
+        description: '这个平台真的很好，不仅下载迅速，而且还有现金奖励'
+    }]];
+    dataList.forEach(function (data) {
+        createSlide(data);
+    });
+    var mySwiper = new Swiper ('.swiper-container', {
+        direction: 'horizontal', // 垂直切换选项
+        loop: true, // 循环模式选项
+        freeMode : false,
+        autoplay: {
+            delay: 100000,
+            stopOnLastSlide: false,
+            disableOnInteraction: true
+        }
+    })
+</script>
+</body>
+</html>

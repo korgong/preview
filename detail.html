@@ -84,32 +84,47 @@
 </head>
 <body>
 <div class="app">
-    <div class="complaint-reason">请选择投诉原因</div>
-    <div class="items">
-        <div class="complaint-item coronavirus-related" data-id="a">新冠肺炎疫情相关</div>
-        <div class="complaint-item fraud" data-id="b">欺诈</div>
-        <div class="complaint-item sexual" data-id="c">色情</div>
-        <div class="complaint-item pornographic" data-id="d">诱导行为</div>
-        <div class="complaint-item fake-news" data-id="e">不实信息</div>
-        <div class="complaint-item crime" data-id="f">违法犯罪</div>
-        <div class="complaint-item harass" data-id="g">骚扰</div>
-        <div class="complaint-item others" data-id="h">其他</div>
-        <div class="complaint-item infringement" data-id="i">
-            <div class="title">侵权(冒充他人、侵犯名誉等)</div>
-            <div class="description">个人/企业等民事主体被诽谤侮辱、人身权或知识产权等被侵犯请选择“侵权”投诉。</div>
-        </div>
-    </div>
+    <div class="complaint-reason"></div>
+<!--    <div class="complaint-item"></div>-->
 </div>
 <script>
-    document.querySelector('.items').onclick = function (e) {
-        let category = e.target.getAttribute('data-id');
-        let categoryMap = {a: true, b: true, d: true};
-        if (categoryMap[category]) {
-            window.open(' http://172.20.10.13:8000/detail.html?' + 'category=' + category);
-        } else {
-            window.open('http://172.20.10.13:8000/accuse.html');
+    let getQueryParameter = function(parameterName) {
+        let arrStr = window.location.search.substring(1).split('&');
+        for (let i = 0; i < arrStr.length; i++) {
+            let item = arrStr[i].split('=');
+            if (item[0] == parameterName) {
+                return decodeURI(item[1]);
+            }
         }
+    };
+    let categoryMap = {
+        a: ['利用疫情诈骗、虚假募捐', '利用疫情传播夸大、不实信息', '野生动物贩卖、宰杀', '其他疫情相关'],
+        b: ['多级分销', '网络借贷', '兼职赚钱', '高额返利', '相亲交友', '虚假活动', '高利益理财', '微盘微交易', '不在以上类型中'],
+        d: ['诱导分享', '诱导关注'], e: ['政治类不实信息', '医疗健康类不实信息', '社会事件类不实信息']
+    };
+    let category = getQueryParameter('category');
+    let titleElement = document.querySelector('.complaint-reason');
+    switch (category) {
+        case 'a':
+            titleElement.appendChild(document.createTextNode('请选择新冠肺炎疫情相关类型'));
+            break;
+        case 'b':
+            titleElement.appendChild(document.createTextNode('请选择欺诈相关类型'));
+            break;
+        case 'd':
+            titleElement.appendChild(document.createTextNode('请选择诱导行为相关类型'));
+            break;
     }
+    let detailList = categoryMap[category];
+    let container = document.querySelector('.app');
+    // a temp variable
+    let element;
+    detailList.forEach(function (item) {
+        element = document.createElement('div');
+        element.className = 'complaint-item';
+        element.appendChild(document.createTextNode(item));
+        container.appendChild(element);
+    });
 </script>
 </body>
 </html>

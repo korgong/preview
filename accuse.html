@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <title>preview</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
+    <link rel="stylesheet" href="index.css">
+    <script src="./libs/jquery-3.3.1.js"></script>
+    <script>
+        (function () {
+            // 设置rem基准值
+            var win = window;
+            var html = document.documentElement;
+            var timer = null;
+
+            function setRem() {
+                var width = html.getBoundingClientRect().width;
+                // width = Math.min(width, 420);
+                // 真实尺寸除以75
+                var rem = width / 10;
+                // win.rem = rem;
+                html.style.fontSize = rem + 'px';
+            }
+
+            win.addEventListener('resize',function() {
+                clearTimeout(timer);
+                timer = setTimeout(setRem, 300);
+            }, false);
+            setRem();
+        })();
+    </script>
+    <style>
+        .app {
+            font-size: 18px;
+            color: #fff;
+            height: 100vh;
+            background: #000;
+            width: 10rem;
+        }
+        .complaint-account {
+            padding-bottom: 20px;
+        }
+        textarea {
+            width: 10rem;
+            height: 2rem;
+        }
+        .submit {
+            background: #808080;
+            width: 2.5rem;
+            height: 1rem;
+            line-height: 1rem;
+            font-size: 16px;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="complaint-account">
+        请输入投诉账号
+        <textarea></textarea>
+    </div>
+    <div class="complaint-description">
+        请输入投诉描述
+        <textarea></textarea>
+    </div>
+    <div class="submit">提交</div>
+</div>
+<script>
+    document.querySelector('.submit').onclick = function () {
+        let account = document.querySelectorAll('textarea')[0].value;
+        let description = document.querySelectorAll('textarea')[1].value;
+        console.log(account + description);
+    }
+</script>
+</body>
+</html>
