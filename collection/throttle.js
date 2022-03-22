@@ -1,85 +1,100 @@
-// throttle 节流
-// 使用方法存储id
-// function throttle(method, context) {
-//     clearInterval(method.timeout);
-//     method.timeout = setTimeout(function () {
-//         method.call(context);
-//     }, 300);
-// }
-//
-// let method = function () {
-//     console.log('hello, world');
-// };
-//
-// window.onresize = function () {
-//     throttle(method);
-// };
-
-// 使用闭包存储id
-let method = function () {
-    console.log(arguments);
-};
-function throttle(method, delay) {
-    let timeout = null;
-    let isFirst = true;
-    return function (arg) {
-        let context = this;
-        let args = arguments;
-        if (isFirst) {
-            method.apply(context, args);
-            isFirst = false;
-            // 第一次执行后结束
-            return;
+// https://underscorejs.org/docs/modules/throttle.html
+// https://underscorejs.org/docs/modules/debounce.html
+function now() {
+    return new Date().getTime();
+}
+function restArguments(func, startIndex) {
+    startIndex = startIndex == null ? func.length - 1 : +startIndex;
+    return function() {
+        var length = Math.max(arguments.length - startIndex, 0),
+            rest = Array(length),
+            index = 0;
+        for (; index < length; index++) {
+            rest[index] = arguments[index + startIndex];
         }
+        switch (startIndex) {
+            case 0: return func.call(this, rest);
+            case 1: return func.call(this, arguments[0], rest);
+            case 2: return func.call(this, arguments[0], arguments[1], rest);
+        }
+        var args = Array(startIndex + 1);
+        for (index = 0; index < startIndex; index++) {
+            args[index] = arguments[index];
+        }
+        args[startIndex] = rest;
+        return func.apply(this, args);
+    };
+}
+function throttle(func, wait, options) {
+    var timeout, context, args, result;
+    var previous = 0;
+    if (!options) options = {};
+    var later = function() {
+        previous = options.leading === false ? 0 : now();
+        timeout = null;
+        result = func.apply(context, args);
+        if (!timeout) context = args = null;
+    };
+    var throttled = function() {
+        var _now = now();
+        if (!previous && options.leading === false) previous = _now;
+        var remaining = wait - (_now - previous);
+        context = this;
+        args = arguments;
+        if (remaining <= 0 || remaining > wait) {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            previous = _now;
+            result = func.apply(context, args);
+            if (!timeout) context = args = null;
+        } else if (!timeout && options.trailing !== false) {
+            timeout = setTimeout(later, remaining);
+        }
+        return result;
+    };
+    throttled.cancel = function() {
         clearTimeout(timeout);
-        timeout = setTimeout(function () {
-            method.apply(context, args);
-        }, delay)
-    }
+        previous = 0;
+        timeout = context = args = null;
+    };
+    return throttled;
 }
 
-// window.onresize = throttle(method);
-
-
-// 顺序执行三次，只有最后一次会调用
-// let fn = throttle(method);
-// fn(1);
-// fn(2);
-// fn(3);
-
-
-// debounce 防抖
-function debounce(method, delay, mustRunTime) {
-    let timer = null;
-    let startTime = null;
-    var debounced = function () {
-        clearTimeout(timer);
-        // this points to the object calling method debounced
-        let that = this;
-        let args = arguments;
-        let currentTime = Date.now();
-        if (!startTime || currentTime - startTime >= mustRunTime) {
-            startTime = currentTime;
-            method.apply(that, args);
+function debounce(func, wait, immediate) {
+    var timeout, previous, args, result, context;
+    var later = function() {
+        var passed = now() - previous;
+        if (wait > passed) {
+            timeout = setTimeout(later, wait - passed);
         } else {
-            timer = setTimeout(function () {
-                method.apply(that, args);
-            }, delay)
+            timeout = null;
+            if (!immediate) result = func.apply(context, args);
+            if (!timeout) args = context = null;
         }
+    };
+    var debounced = restArguments(function(_args) {
+        context = this;
+        args = _args;
+        previous = now();
+        if (!timeout) {
+            timeout = setTimeout(later, wait);
+            if (immediate) result = func.apply(context, args);
+        }
+        return result;
+    });
+
+    debounced.cancel = function() {
+        clearTimeout(timeout);
+        timeout = args = context = null;
     };
     return debounced;
 }
 
-// 第一次和第二次小于最小执行时间，都被clear。但是初始时间一直被记录。
-// 第三次大于最小间隔，执行。第四次小于最小间隔。但是没有新的执行动作。40ms后就会执行。
-let fn = debounce(method, 50, 30);
-fn(1);
-setTimeout(function () {
-    fn(2);
-}, 20);
-setTimeout(function () {
-    fn(3);
-}, 30);
-setTimeout(function () {
-    fn(4);
-}, 40);
+
+let element = document.querySelector('.app');
+let func = function () {
+    console.log('called', new Date().getTime());
+}
+element.onclick = throttle(func, 5000)

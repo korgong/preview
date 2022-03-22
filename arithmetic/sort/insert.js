@@ -1,4 +1,24 @@
 //  [ 17, 24, 31, 45, 50, 63, 85, 96 ]
+function insertSort(arr) {
+    if (arr.length < 2) {
+        return arr;
+    }
+    for (let i=1;i<arr.length;i++) {
+        let temp = arr[i];
+        let j;
+        for (j=i-1;j>=0;j--) {
+            let current = arr[j];
+            if (current > temp) {
+                arr[j + 1] = arr[j];
+            } else {
+                break;
+            }
+        }
+        arr[j + 1] = temp;
+    }
+    return arr;
+}
+console.log('insertSort', insertSort(sourceArr));
 // 方法1
 // let arr = [85, 24, 63, 45, 17, 31, 96, 50];
 // let newArr = [];
@@ -120,21 +140,21 @@
 //   ①② ④
 //   ①②③④
 
-let arr = [85, 24, 63, 45, 17, 31, 96, 50];
-
-function insert(myArr) {
-    for (let i = 0; i < arr.length; i++) {
-        // 记录取出元素的值value
-        let value = myArr[i];
-        let j;
-        // 将value和当前元素比较，如果value小于当前元素，当前元素后移一位。当前元素的下标-1
-        for (j = i - 1; j > -1 && myArr[j] > value; j--) {
-            myArr[j + 1] = myArr[j];
-        }
-        // 如果valve大于等于当前元素。当前元素的下一位就是valve。
-        // 如果value小于所有元素，当前下标为-1，那么下一位就是value
-        myArr[j + 1] = value;
-
-    }
-    return myArr;
-}
+// let arr = [85, 24, 63, 45, 17, 31, 96, 50];
+//
+// function insert(myArr) {
+//     for (let i = 0; i < arr.length; i++) {
+//         // 记录取出元素的值value
+//         let value = myArr[i];
+//         let j;
+//         // 将value和当前元素比较，如果value小于当前元素，当前元素后移一位。当前元素的下标-1
+//         for (j = i - 1; j > -1 && myArr[j] > value; j--) {
+//             myArr[j + 1] = myArr[j];
+//         }
+//         // 如果valve大于等于当前元素。当前元素的下一位就是valve。
+//         // 如果value小于所有元素，当前下标为-1，那么下一位就是value
+//         myArr[j + 1] = value;
+//
+//     }
+//     return myArr;
+// }
