@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <title>preview</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.baidu.com/cache/icon/favicon.ico">
+    <style>
+        .app {
+            margin: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            width: 500px;
+            height: 500px;
+            box-sizing: content-box;
+            border: 1px solid purple;
+            align-content: space-between;
+        }
+        .row {
+            flex-basis: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .row:nth-child(2) {
+            justify-content: center;
+        }
+        .item {
+            width: 150px;
+            height: 150px;
+            background: coral;
+        }
+    </style>
+</head>
+<body>
+<!--common layout -->
+<div class="app">
+    <div class="row">
+        <div class="item">item1</div>
+        <div class="item">item2</div>
+    </div>
+    <div class="row">
+        <div class="item">item3</div>
+    </div>
+    <div class="row">
+        <div class="item">item4</div>
+        <div class="item">item5</div>
+    </div>
+</div>
+<script>
+    console.log('hello');
+</script>
+</body>
+</html>
